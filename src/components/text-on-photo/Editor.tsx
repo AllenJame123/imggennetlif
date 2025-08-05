@@ -1,27 +1,30 @@
 import { useEffect, useRef, useState } from "react";
-import { fabric } from 'fabric';
 import { Button } from "@/components/ui/button";
 import TextStyleControls from "./TextStyleControls";
 
 const Editor = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
+  const [canvas, setCanvas] = useState<any>(null); // fabric.Canvas | null
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    let fabricInstance: any;
+    let fabricCanvas: any;
     if (!canvasRef.current) return;
 
-    const fabricCanvas = new fabric.Canvas(canvasRef.current, {
-      width: 800,
-      height: 500,
-      preserveObjectStacking: true
+    import('fabric').then(({ fabric }) => {
+      fabricInstance = fabric;
+      fabricCanvas = new fabricInstance.Canvas(canvasRef.current, {
+        width: 800,
+        height: 500,
+        preserveObjectStacking: true
+      });
+      setCanvas(fabricCanvas);
     });
 
-    setCanvas(fabricCanvas);
-
     return () => {
-      fabricCanvas.dispose();
+      if (fabricCanvas) fabricCanvas.dispose();
     };
   }, []);
 
