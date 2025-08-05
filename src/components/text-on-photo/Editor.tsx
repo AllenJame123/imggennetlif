@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment */
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import TextStyleControls from "./TextStyleControls";
@@ -13,8 +12,6 @@ const Editor = () => {
   const [canvas, setCanvas] = useState<any>(null);
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // Local fabric ref for dynamic import
-  let fabricRef: { fabric: typeof import('fabric') } | null = null;
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
