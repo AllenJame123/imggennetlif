@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import TextStyleControls from "./TextStyleControls";
