@@ -2,56 +2,57 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import TextStyleControls from "./TextStyleControls";
 
+const saveState = (canvas: any, setUndoStack: React.Dispatch<React.SetStateAction<string[]>>) => {
+  if (!canvas) return;
+  setUndoStack((prev: string[]) => [...prev, JSON.stringify(canvas)]);
+};
+
 const Editor = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [canvas, setCanvas] = useState<any>(null); // fabric.Canvas | null
+  const [canvas, setCanvas] = useState<any>(null);
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Local fabric ref for dynamic import
+  let fabricRef: { fabric: typeof import('fabric') } | null = null;
 
   useEffect(() => {
-    let fabricInstance: any;
-    let fabricCanvas: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let fabricCanvas: any = null;
     if (!canvasRef.current) return;
-
+    // @ts-expect-error
     import('fabric').then(({ fabric }) => {
-      fabricInstance = fabric;
-      fabricCanvas = new fabricInstance.Canvas(canvasRef.current, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newCanvas: any = new fabric.Canvas(canvasRef.current, {
         width: 800,
         height: 500,
         preserveObjectStacking: true
       });
-      setCanvas(fabricCanvas);
+      fabricCanvas = newCanvas;
+      setCanvas(newCanvas);
     });
-
     return () => {
-      if (fabricCanvas) fabricCanvas.dispose();
+      if (fabricCanvas && typeof fabricCanvas.dispose === 'function') {
+        fabricCanvas.dispose();
+      }
     };
   }, []);
 
-  const saveState = () => {
-    if (!canvas) return;
-    setUndoStack(prev => [...prev, JSON.stringify(canvas)]);
-  };
-
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!canvas || !event.target.files?.[0]) return;
-
     const file = event.target.files[0];
     const reader = new FileReader();
-
     reader.onload = (e) => {
       if (!e.target?.result) return;
-
-      fabric.Image.fromURL(e.target.result.toString(), (img) => {
-        img.set({
-          selectable: false,
+      import('fabric').then(({ fabric }) => {
+        fabric.Image.fromURL(e.target.result!.toString(), (img: any) => {
+          img.set({ selectable: false });
+          canvas.clear();
+          canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+            scaleX: canvas.width! / img.width!,
+            scaleY: canvas.height! / img.height!,
+          });
+          saveState(canvas, setUndoStack);
         });
-        canvas.clear();
-        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-          scaleX: canvas.width! / img.width!,
-          scaleY: canvas.height! / img.height!,
-        });
-        saveState();
       });
     };
     reader.readAsDataURL(file);
@@ -59,32 +60,29 @@ const Editor = () => {
 
   const addText = () => {
     if (!canvas) return;
-
     const text = (document.getElementById('textInput') as HTMLInputElement)?.value;
     const font = (document.getElementById('fontSelect') as HTMLSelectElement)?.value;
     const size = parseInt((document.getElementById('fontSize') as HTMLInputElement)?.value || "20", 10);
     const color = (document.getElementById('fontColor') as HTMLInputElement)?.value;
-
-    const textBox = new fabric.Textbox(text, {
-      left: 100,
-      top: 100,
-      fontFamily: font,
-      fontSize: size,
-      fill: color,
-      editable: true,
+    import('fabric').then(({ fabric }) => {
+      const textBox = new fabric.Textbox(text, {
+        left: 100,
+        top: 100,
+        fontFamily: font,
+        fontSize: size,
+        fill: color,
+        editable: true,
+      });
+      canvas.add(textBox);
+      canvas.setActiveObject(textBox);
+      saveState(canvas, setUndoStack);
     });
-
-    canvas.add(textBox);
-    canvas.setActiveObject(textBox);
-    saveState();
   };
 
   const toggleStyle = (style: 'bold' | 'italic' | 'underline') => {
     if (!canvas) return;
-
-    const activeObject = canvas.getActiveObject() as fabric.Textbox;
+    const activeObject = canvas.getActiveObject() as any;
     if (!activeObject || activeObject.type !== 'textbox') return;
-
     switch (style) {
       case 'bold':
         activeObject.set('fontWeight', activeObject.fontWeight === 'bold' ? 'normal' : 'bold');
@@ -96,9 +94,8 @@ const Editor = () => {
         activeObject.set('underline', !activeObject.underline);
         break;
     }
-
     canvas.renderAll();
-    saveState();
+    saveState(canvas, setUndoStack);
   };
 
   const undo = () => {
@@ -122,7 +119,7 @@ const Editor = () => {
 
   useEffect(() => {
     if (!canvas) return;
-    canvas.on('mouse:down', saveState);
+    canvas.on('mouse:down', () => saveState(canvas, setUndoStack));
   }, [canvas]);
 
   const triggerFileInput = () => {
@@ -135,7 +132,7 @@ const Editor = () => {
     if (activeObject && activeObject.type === 'textbox') {
       activeObject.set('fontFamily', event.target.value);
       canvas.renderAll();
-      saveState();
+      saveState(canvas, setUndoStack);
     }
   };
 
@@ -145,7 +142,7 @@ const Editor = () => {
     if (activeObject && activeObject.type === 'textbox') {
       activeObject.set('fontSize', parseInt(event.target.value || "20", 10));
       canvas.renderAll();
-      saveState();
+      saveState(canvas, setUndoStack);
     }
   };
 
