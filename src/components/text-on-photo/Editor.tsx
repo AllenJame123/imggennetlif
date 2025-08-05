@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment */
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import TextStyleControls from "./TextStyleControls";
@@ -19,7 +20,6 @@ const Editor = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let fabricCanvas: any = null;
     if (!canvasRef.current) return;
-    // @ts-expect-error
     import('fabric').then(({ fabric }) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const newCanvas: any = new fabric.Canvas(canvasRef.current, {
