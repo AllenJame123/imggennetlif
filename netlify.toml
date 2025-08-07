@@ -1,7 +1,7 @@
 
 [build]
-  command = "npm run export"
-  publish = "out" # Changed from 'dist' to '.next' for Next.js SSR/Node.js deployment
+  command = "npm run build"
+  publish = ".next" # Changed from 'dist' to '.next' for Next.js SSR/Node.js deployment
 
 [build.environment]
   NODE_VERSION = "18"
