@@ -1,7 +1,7 @@
 
 [build]
-  command = "npm run build"
-  publish = ".next" # Changed from 'dist' to '.next' for Next.js SSR/Node.js deployment
+  command = "npm run export"
+  publish = "out" # Changed from 'dist' to '.next' for Next.js SSR/Node.js deployment
 
 [build.environment]
   NODE_VERSION = "18"
@@ -94,3 +94,6 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[functions]
+  external_node_modules = ["fabric", "recharts"]
