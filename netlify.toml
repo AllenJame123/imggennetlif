@@ -96,4 +96,5 @@
   status = 200
 
 [functions]
-  external_node_modules = ["fabric", "recharts"]
+  # Only include modules required in serverless code
+  # external_node_modules = ["fabric"]
